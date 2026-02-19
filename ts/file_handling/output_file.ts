@@ -293,7 +293,9 @@ function makeTopFile(name:string, newElementIDs:Map<BasicElement, number>, newSt
 
     function makeTopFileNew(name){
         const top: string[] = []; // string of contents of .top file
-        let default_props = ['id', 'type', 'circular']
+        // [CUSTOM COLOR FEATURE] 'color' is excluded here because we write it
+        // explicitly from the rendering buffer below, preventing duplicates
+        let default_props = ['id', 'type', 'circular', 'color']
 
         let firstLine:string[] = [counts['totParticles'].toString(), counts['totStrands'].toString()];
 
@@ -308,8 +310,23 @@ function makeTopFile(name:string, newElementIDs:Map<BasicElement, number>, newSt
         top.push(firstLine.join(" "));
 
         newStrandIDs.forEach((_id, s) => {
-            let line = [s.getSequence(), "id="+_id.toString(), "type="+s.kwdata['type'], "circular="+s.isCircular(), s.getKwdataString(default_props)]
-            top.push(line.join(" "))
+            // [CUSTOM COLOR FEATURE] Read the actual current backbone color from the
+            // GPU rendering buffer (sys.bbColors) so that any user color changes in
+            // the UI are preserved in the exported .top file as color=#hexcode
+            let colorStr = '';
+            let e = s.end5 || s.end3;
+            if (e) {
+                try {
+                    let sys = e.getSystem();
+                    let idx = e.sid * 3;
+                    let bbColor = new THREE.Color(sys.bbColors[idx], sys.bbColors[idx+1], sys.bbColors[idx+2]);
+                    colorStr = 'color=#' + bbColor.getHexString();
+                } catch(err) {
+                    console.warn('Could not read color for strand', _id, err);
+                }
+            }
+            let line = [s.getSequence(), "id="+_id.toString(), "type="+s.kwdata['type'], "circular="+s.isCircular(), colorStr, s.getKwdataString(default_props)]
+            top.push(line.join(" ").trim())
         })
         
         top.push('') // topology has to end in an empty line
