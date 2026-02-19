@@ -293,8 +293,6 @@ function makeTopFile(name:string, newElementIDs:Map<BasicElement, number>, newSt
 
     function makeTopFileNew(name){
         const top: string[] = []; // string of contents of .top file
-        // [CUSTOM COLOR FEATURE] 'color' is excluded here because we write it
-        // explicitly from the rendering buffer below, preventing duplicates
         let default_props = ['id', 'type', 'circular', 'color']
 
         let firstLine:string[] = [counts['totParticles'].toString(), counts['totStrands'].toString()];
@@ -310,9 +308,7 @@ function makeTopFile(name:string, newElementIDs:Map<BasicElement, number>, newSt
         top.push(firstLine.join(" "));
 
         newStrandIDs.forEach((_id, s) => {
-            // [CUSTOM COLOR FEATURE] Read the actual current backbone color from the
-            // GPU rendering buffer (sys.bbColors) so that any user color changes in
-            // the UI are preserved in the exported .top file as color=#hexcode
+            // save user color changes in the exported topology file
             let colorStr = '';
             let e = s.end5 || s.end3;
             if (e) {
