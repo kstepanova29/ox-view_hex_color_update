@@ -149,6 +149,15 @@ function parseTop(s: string) {
 
             new_strand.end3 = nuc;
 
+            // [CUSTOM COLOR FEATURE] If the .top file has color= on this strand,
+            // set each element's .color property so it shows up in Custom coloring mode
+            if (kwdata['color']) {
+                let strandColor = new THREE.Color(kwdata['color']);
+                new_strand.forEach((elem) => {
+                    elem.color = strandColor.clone();
+                });
+            }
+
             if (kwdata["circular"]) {
                 new_strand.end3.n3 = new_strand.end5;
                 new_strand.end5.n5 = new_strand.end3;
